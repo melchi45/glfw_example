@@ -1,12 +1,45 @@
+
+#ifdef __APPLE__
+#include <OpenGL/gl3.h>
+#else
+#include <GL/glew.h>
+#endif
+
 #include <GLFW/glfw3.h>
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
 
+#define PIXEL_FORMAT GL_RGB
+
 // reference from 
 // https://gist.github.com/victusfate/9214902
+// https://nervous.io/ffmpeg/opengl/2017/01/31/ffmpeg-opengl/
 
+static const GLchar *v_shader_source =
+"attribute vec2 position;\n"
+"varying vec2 texCoord;\n"
+"void main(void) {\n"
+"  gl_Position = vec4(position, 0, 1);\n"
+"  texCoord = position;\n"
+"}\n";
+
+static const GLchar *f_shader_source =
+"uniform sampler2D tex;\n"
+"varying vec2 texCoord;\n"
+"void main() {\n"
+"  gl_FragColor = texture2D(tex, texCoord * 0.5 + 0.5);\n"
+"}\n";
+/*
+typedef struct {
+	const AVClass *class;
+	GLuint        program;
+	GLuint        frame_tex;
+	GLFWwindow    *window;
+	GLuint        pos_buf;
+} GenericShaderContext
+*/
 static void error_callback(int error, const char* description)
 {
 	fputs(description, stderr);
