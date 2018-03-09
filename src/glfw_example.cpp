@@ -2,6 +2,10 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <iostream>
+
+// reference from 
+// https://gist.github.com/victusfate/9214902
 
 static void error_callback(int error, const char* description)
 {
@@ -24,6 +28,18 @@ int main(void)
     if (!glfwInit())
         return -1;
 
+	// cout << "default shader lang: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << endl;
+	
+	// select opengl version
+	 int major, minor, rev;
+	 glfwGetVersion(&major, &minor, &rev);
+	 std::cout << "glfw major.minor " << major << "." << minor << "." << rev << std::endl;
+
+	//glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	//glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+	//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+	//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	
     // Create a windowed mode window and its OpenGL context 
     window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
     if (!window)
