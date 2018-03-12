@@ -6,15 +6,18 @@ project( ${PROJECT_NAME} )
 set ( ${PROJECT_NAME}_HOME ${CMAKE_CURRENT_SOURCE_DIR} )
 message("SourceDir: " ${${PROJECT_NAME}_HOME} )
 
-if ( CMAKE_COMPILER_IS_GNUCXX )
-   set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive" )
-endif ()
-
 # set where to find additional cmake modules if any
 # comment it out if not required
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 message ( "CMAKE_MODULE_PATH = ${CMAKE_MODULE_PATH}" )
 
+if ( NOT DEFINED BUILD_SHARED_LIBS )
+   set ( BUILD_SHARED_LIBS FALSE )
+endif ()
+
+if ( CMAKE_COMPILER_IS_GNUCXX )
+   set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive" )
+endif ()
 
 # set compiler support for C++11 standard
 option(USE_CXX11_STD "Product should be build with C++11 compiler option enabled" ON)
@@ -41,15 +44,50 @@ find_package(OpenGL REQUIRED)
 if(OPENGL_FOUND)
 message("OPENGL_LIBRARIES = ${OPENGL_LIBRARIES} ")
 message("OPENGL_INCLUDE_DIRS = ${OPENGL_INCLUDE_DIRS} ")
-endif()
+else( OPENGL_FOUND )
+    message(FATAL_ERROR "OpenGL not found")
+endif( OPENGL_FOUND )
 
-message("CMAKE_INCLUDE_PATH = ${CMAKE_INCLUDE_PATH}")
+#message("CMAKE_INCLUDE_PATH = ${CMAKE_INCLUDE_PATH}")
 
-#find_package(GLFW3) # First try to find using the find_package method (works with vcpkg)
-#if(GLFW_FOUND) # Works with some other methods
-#	message(STATUS "GLFW3_INCLUDE_PATH=${GLFW3_INCLUDE_PATH}")
-#	message(STATUS "GLFW_LIBRARIES=${GLFW_LIBRARIES}")
-#endif()
+find_package(glfw3 REQUIRED) # First try to find using the find_package method (works with vcpkg)
+if(GLFW_FOUND) # Works with some other methods
+	message(STATUS "GLFW3_INCLUDE_PATH=${GLFW3_INCLUDE_PATH}")
+	message(STATUS "GLFW_LIBRARIES=${GLFW_LIBRARIES}")
+else( GLFW_FOUND )
+    message(FATAL_ERROR "GLFW3 not found")
+endif( GLFW_FOUND )
+
+find_package(FFmpeg REQUIRED)
+if(FFMPEG_FOUND)
+  message("Found FFMPEG/LibAV libraries")
+  message("FFMPEG_INCLUDE_DIRS = ${FFMPEG_INCLUDE_DIRS} ")
+  message("FFMPEG_LIBRARIES = ${FFMPEG_LIBRARIES} ")
+  message("FFMPEG_DEFINITIONS = ${FFMPEG_DEFINITIONS} ")
+  
+  if( SWSCALE_FOUND )
+	message("Found SWSCALE_LIBRARIES = ${SWSCALE_LIBRARIES}")
+  endif()
+  
+  if( SWRESAMPLE_FOUND )
+	message("Found SWRESAMPLE_LIBRARIES = ${SWRESAMPLE_LIBRARIES}")
+  endif()
+  
+  if( AVDEVICE_FOUND )
+	message("Found AVDEVICE_LIBRARIES = ${AVDEVICE_LIBRARIES}")
+  endif()
+  
+  if( AVFILTER_FOUND )
+	message("Found AVFILTER_LIBRARIES = ${AVFILTER_LIBRARIES}")
+  endif()
+  
+  if( POSTPROC_FOUND )
+	message("Found POSTPROC_LIBRARIES = ${POSTPROC_LIBRARIES}")
+  endif()
+else( FFMPEG_FOUND )
+    message(FATAL_ERROR "FFMPEG not found")
+endif( FFMPEG_FOUND )
+
 
 # use standard file endings - rename to cxx if needed
 set(CXX_SRC_EXT_PATTERN ".cpp")
@@ -66,12 +104,15 @@ source_group("Header Files" FILES ${HDR_FILES})
 # build target
 add_executable( ${PROJECT_NAME} ${SRC_FILES} ${HDR_FILES} )
 
-target_include_directories( ${PROJECT_NAME} PRIVATE ${OPENGL_INCLUDE_DIRS} )
-#target_include_directories( ${PROJECT_NAME} PRIVATE ${GLFW3_INCLUDE_PATH} )
+target_include_directories( ${PROJECT_NAME} 
+	PRIVATE 
+		${OPENGL_INCLUDE_DIRS} ${GLFW3_INCLUDE_PATH} ${FFMPEG_INCLUDE_DIRS} 
+)
 
-target_link_libraries( ${PROJECT_NAME} ${OPENGL_LIBRARIES} )
-#target_link_libraries( ${PROJECT_NAME} ${GLFW_LIBRARIES} )
-#target_link_libraries( ${PROJECT_NAME} PRIVATE glfw)
+target_link_libraries( ${PROJECT_NAME} 
+	PRIVATE
+		${OPENGL_LIBRARIES} ${GLFW_LIBRARIES} ${FFMPEG_LIBRARIES} ${SWSCALE_LIBRARIES} ${AVDEVICE_LIBRARIES} ${AVFILTER_LIBRARIES}
+)
 
 add_custom_command (
     TARGET ${PROJECT_NAME}
